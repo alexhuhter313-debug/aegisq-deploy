@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  detector:
+    build:
+      context: ./aegisq-prototype
+    container_name: aegisq-detector
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - LOG_LEVEL=INFO
+    networks:
+      - aegisq-net
+
+  fortress:
+    build:
+      context: ./shadow313
+    container_name: aegisq-fortress
+    restart: unless-stopped
+    volumes:
+      - ./shadow313/config:/app/config
+      - ./shadow313/modules:/app/modules
+    depends_on:
+      - detector
+    networks:
+      - aegisq-net
+
+  frontend:
+    build:
+      context: ./aegisq-miniapp
+    container_name: aegisq-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    networks:
+      - aegisq-net
+
+networks:
+  aegisq-net:
+    driver: bridge
