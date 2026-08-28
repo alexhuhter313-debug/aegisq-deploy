@@ -1,0 +1,49 @@
+name: AEGISQ Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout deploy repo
+        uses: actions/checkout@v4
+
+      - name: Checkout sub-repos
+        run: |
+          git clone https://github.com/alexhuhter313-debug/aegisq-prototype.git
+          git clone https://github.com/alexhuhter313-debug/shadow313.git
+          git clone https://github.com/alexhuhter313-debug/aegisq-miniapp.git
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build all services
+        run: docker compose build
+
+      - name: Start services
+        run: docker compose up -d
+
+      - name: Health check — detector
+        run: |
+          sleep 5
+          docker ps --filter name=aegisq-detector --format '{{.Status}}' | grep -q Up
+
+      - name: Health check — fortress
+        run: |
+          docker ps --filter name=aegisq-fortress --format '{{.Status}}' | grep -q Up
+
+      - name: Health check — frontend
+        run: |
+          curl -sf http://localhost:8080 > /dev/null && echo "Frontend OK"
+
+      - name: Stop services
+        run: docker compose down
+
+      - name: Clean up
+        run: docker system prune -f
