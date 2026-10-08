@@ -3,25 +3,26 @@ version: '3.8'
 services:
   detector:
     build:
-      context: ./aegisq-prototype
+      context: ./aegisq
     container_name: aegisq-detector
+    command: aegisq pipeline
     restart: unless-stopped
     volumes:
       - ./data:/app/data
-      - ./logs:/app/logs
+      - ./reports:/app/reports
     environment:
       - LOG_LEVEL=INFO
     networks:
       - aegisq-net
 
-  fortress:
+  api:
     build:
-      context: ./shadow313
-    container_name: aegisq-fortress
+      context: ./aegisq
+    container_name: aegisq-api
+    command: uvicorn aegisq.api:app --host 0.0.0.0 --port 8000
     restart: unless-stopped
-    volumes:
-      - ./shadow313/config:/app/config
-      - ./shadow313/modules:/app/modules
+    ports:
+      - "8000:8000"
     depends_on:
       - detector
     networks:

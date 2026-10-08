@@ -16,8 +16,7 @@ jobs:
 
       - name: Checkout sub-repos
         run: |
-          git clone https://github.com/alexhuhter313-debug/aegisq-prototype.git
-          git clone https://github.com/alexhuhter313-debug/shadow313.git
+          git clone https://github.com/alexhuhter313-debug/aegisq.git
           git clone https://github.com/alexhuhter313-debug/aegisq-miniapp.git
 
       - name: Set up Docker Buildx
@@ -34,9 +33,9 @@ jobs:
           sleep 5
           docker ps --filter name=aegisq-detector --format '{{.Status}}' | grep -q Up
 
-      - name: Health check — fortress
+      - name: Health check — api
         run: |
-          docker ps --filter name=aegisq-fortress --format '{{.Status}}' | grep -q Up
+          curl -sf http://localhost:8000/health > /dev/null && echo "API OK"
 
       - name: Health check — frontend
         run: |
